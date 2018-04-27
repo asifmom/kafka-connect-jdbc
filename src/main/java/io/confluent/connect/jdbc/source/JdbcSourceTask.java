@@ -227,13 +227,17 @@ public class JdbcSourceTask extends SourceTask {
 
         int batchMaxRows = config.getInt(JdbcSourceTaskConfig.BATCH_MAX_ROWS_CONFIG);
         boolean hadNext = true;
+        log.debug("Checking results size {}", results.size());
+        log.debug("Checking batchMaxRows {}", batchMaxRows);
         while (results.size() < batchMaxRows && (hadNext = querier.next())) {
+          log.debug("Extracting record from querier {} hadNext{}",results.size(),hadNext);
           results.add(querier.extractRecord());
         }
 
         if (!hadNext) {
           // If we finished processing the results from the current query, we can reset and send
           // the querier to the tail of the queue
+          log.debug("finished processing the results from the current query {}");
           resetAndRequeueHead(querier);
         }
 
@@ -242,13 +246,14 @@ public class JdbcSourceTask extends SourceTask {
           continue;
         }
 
-        log.debug("Returning {} records for {}", results.size(), querier.toString());
+        log.debug("Returning ****{} records for {}", results.size(), querier.toString());
         return results;
       } catch (SQLException sqle) {
         log.error("Failed to run query for table {}: {}", querier.toString(), sqle);
         resetAndRequeueHead(querier);
         return null;
       } catch (Throwable t) {
+        log.error("Exception inn trying to run query {}: {}", t.getMessage());
         resetAndRequeueHead(querier);
         throw t;
       }

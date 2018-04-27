@@ -55,9 +55,8 @@ import static io.confluent.connect.jdbc.source.JdbcSourceConnectorConfig.Numeric
  * </p>
  */
 public class TimestampIncrementingTableQuerier extends TableQuerier {
-  private static final Logger log = LoggerFactory.getLogger(
-      TimestampIncrementingTableQuerier.class
-  );
+  private static final Logger log =
+          LoggerFactory.getLogger(TimestampIncrementingTableQuerier.class);
 
   private static final BigDecimal LONG_MAX_VALUE_AS_BIGDEC = new BigDecimal(Long.MAX_VALUE);
 
@@ -90,7 +89,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier {
 
     switch (mode) {
       case TABLE:
-        builder.append("SELECT * FROM ");
+        builder.append("SELECT TOP 100 * FROM ");
         builder.append(JdbcUtils.quoteString(name, quoteString));
         break;
       case QUERY:
@@ -207,6 +206,8 @@ public class TimestampIncrementingTableQuerier extends TableQuerier {
   public SourceRecord extractRecord() throws SQLException {
     final Struct record = DataConverter.convertRecord(schema, resultSet, mapNumerics);
     offset = extractOffset(schema, record);
+    log.debug("extractRecord offset {} {}", offset,record);
+
     // TODO: Key?
     final String topic;
     final Map<String, String> partition;
